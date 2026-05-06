@@ -54,21 +54,25 @@ export default function Feed() {
     }
   }, [])
 
+  async function loadFeed(currentUser) {
+    const { data } = await supabase
+      .from('posts')
+      .select('*, spaces(name, emoji), reactions(id, type, user_id)')
+      .eq('is_removed', false)
+      .order('created_at', { ascending: false })
+      .limit(30)
+    setPosts(data || [])
+  }
+
   useEffect(() => {
-    async function loadFeed() {
+    async function init() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/auth/login'); return }
       setUser(user)
-      const { data } = await supabase
-        .from('posts')
-        .select('*, spaces(name, emoji)')
-        .eq('is_removed', false)
-        .order('created_at', { ascending: false })
-        .limit(30)
-      setPosts(data || [])
+      await loadFeed(user)
       setLoading(false)
     }
-    loadFeed()
+    init()
   }, [router])
 
   async function handleReaction(postId, type) {
@@ -80,11 +84,17 @@ export default function Feed() {
       .eq('user_id', user.id)
       .eq('type', type)
       .maybeSingle()
+
     if (existing) {
       await supabase.from('reactions').delete().eq('id', existing.id)
     } else {
-      await supabase.from('reactions').insert({ post_id: postId, user_id: user.id, type })
+      await supabase.from('reactions').insert({
+        post_id: postId,
+        user_id: user.id,
+        type,
+      })
     }
+    await loadFeed(user)
   }
 
   async function handleSignOut() {
@@ -101,7 +111,20 @@ export default function Feed() {
         reporter_user_id: user.id,
         reason: 'reported by user',
       })
+      alert('Post reported. Our team will review it.')
     }
+  }
+
+  function hearYouCount(post) {
+    return post.reactions?.filter(r => r.type === 'hear_you').length || 0
+  }
+
+  function meTooCount(post) {
+    return post.reactions?.filter(r => r.type === 'me_too').length || 0
+  }
+
+  function userReacted(post, type) {
+    return post.reactions?.some(r => r.user_id === user?.id && r.type === type)
   }
 
   return (
@@ -111,6 +134,7 @@ export default function Feed() {
 
       <div style={{position:'relative', zIndex:1}}>
 
+        {/* Navbar */}
         <nav style={{
           position:'sticky', top:0, zIndex:10,
           backgroundColor:'rgba(15,13,20,0.85)',
@@ -134,11 +158,12 @@ export default function Feed() {
           </div>
         </nav>
 
+        {/* Feed */}
         <div style={{maxWidth:'560px', margin:'0 auto', padding:'1.5rem 1rem'}}>
 
           {loading && (
             <div style={{textAlign:'center', color:'#4a4760', padding:'4rem', fontSize:'0.875rem'}}>
-              <div style={{fontSize:'1.5rem', marginBottom:'0.75rem'}}>🌙</div>
+              <div style={{fontSize:'1.5rem', marginBottom:'0.75rem', animation:'pulse 2s ease-in-out infinite'}}>🌙</div>
               loading...
             </div>
           )}
@@ -168,6 +193,7 @@ export default function Feed() {
                 opacity:0,
               }}
             >
+              {/* Space + date */}
               <div style={{display:'flex', justifyContent:'space-between', marginBottom:'0.75rem'}}>
                 <span style={{fontSize:'0.7rem', color:'#4a4760'}}>
                   {post.spaces?.emoji} {post.spaces?.name}
@@ -177,41 +203,74 @@ export default function Feed() {
                 </span>
               </div>
 
+              {/* Content warning */}
               {post.has_content_warning && (
                 <div style={{backgroundColor:'#2a2640', borderRadius:'8px', padding:'0.5rem 0.75rem', marginBottom:'0.75rem', fontSize:'0.75rem', color:'#9b98b0'}}>
-                  {post.warning_label || 'sensitive content'}
+                  ⚠️ {post.warning_label || 'sensitive content'}
                 </div>
               )}
 
+              {/* Content */}
               <p style={{fontSize:'0.9rem', color:'#e8e6f0', lineHeight:'1.75', marginBottom:'1rem'}}>
                 {post.content}
               </p>
 
+              {/* Reactions */}
               <div style={{display:'flex', gap:'0.5rem', alignItems:'center'}}>
+
+                {/* I hear you */}
                 <button
                   onClick={() => handleReaction(post.id, 'hear_you')}
-                  style={{fontSize:'0.75rem', color:'#7ec4a0', backgroundColor:'#1a2e24', border:'0.5px solid #2a4a38', padding:'5px 14px', borderRadius:'999px', cursor:'pointer', transition:'all 0.2s'}}
+                  style={{
+                    fontSize:'0.75rem',
+                    color: userReacted(post, 'hear_you') ? '#0f0d14' : '#7ec4a0',
+                    backgroundColor: userReacted(post, 'hear_you') ? '#7ec4a0' : '#1a2e24',
+                    border:'0.5px solid #2a4a38',
+                    padding:'5px 14px',
+                    borderRadius:'999px',
+                    cursor:'pointer',
+                    transition:'all 0.2s',
+                    fontWeight: userReacted(post, 'hear_you') ? '500' : 'normal',
+                  }}
                 >
-                  I hear you
+                  I hear you {hearYouCount(post) > 0 && `· ${hearYouCount(post)}`}
                 </button>
+
+                {/* Me too */}
                 <button
                   onClick={() => handleReaction(post.id, 'me_too')}
-                  style={{fontSize:'0.75rem', color:'#e8a0b4', backgroundColor:'#2e1a24', border:'0.5px solid #4a2a38', padding:'5px 14px', borderRadius:'999px', cursor:'pointer', transition:'all 0.2s'}}
+                  style={{
+                    fontSize:'0.75rem',
+                    color: userReacted(post, 'me_too') ? '#0f0d14' : '#e8a0b4',
+                    backgroundColor: userReacted(post, 'me_too') ? '#e8a0b4' : '#2e1a24',
+                    border:'0.5px solid #4a2a38',
+                    padding:'5px 14px',
+                    borderRadius:'999px',
+                    cursor:'pointer',
+                    transition:'all 0.2s',
+                    fontWeight: userReacted(post, 'me_too') ? '500' : 'normal',
+                  }}
                 >
-                  Me too
+                  Me too {meTooCount(post) > 0 && `· ${meTooCount(post)}`}
                 </button>
+
+                {/* Report */}
                 <button
                   onClick={() => handleReport(post.id)}
                   style={{fontSize:'0.7rem', color:'#2a2640', background:'none', border:'none', cursor:'pointer', marginLeft:'auto', transition:'color 0.2s'}}
+                  onMouseEnter={e => e.target.style.color = '#4a4760'}
+                  onMouseLeave={e => e.target.style.color = '#2a2640'}
                 >
                   report
                 </button>
+
               </div>
             </div>
           ))}
 
         </div>
 
+        {/* Crisis */}
         <div style={{textAlign:'center', padding:'2rem'}}>
           <a href="https://www.befrienders.org" target="_blank" style={{fontSize:'0.75rem', color:'#e88080', opacity:'0.4', textDecoration:'underline', textUnderlineOffset:'4px'}}>
             I need help right now
