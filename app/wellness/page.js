@@ -10,7 +10,6 @@ function WellnessContent() {
   const canvasRef = useRef(null)
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'breathing')
 
-  // Breathing
   const [breathingType, setBreathingType] = useState('box')
   const [breathPhase, setBreathPhase] = useState('ready')
   const [breathText, setBreathText] = useState('tap to begin')
@@ -18,42 +17,30 @@ function WellnessContent() {
   const [isBreathing, setIsBreathing] = useState(false)
   const breathingRef = useRef(null)
 
-  // Grounding
   const [groundingStep, setGroundingStep] = useState(0)
   const [groundingInput, setGroundingInput] = useState('')
   const [groundingAnswers, setGroundingAnswers] = useState([])
 
-  // Journal
   const [journalText, setJournalText] = useState('')
   const [journalSaved, setJournalSaved] = useState(false)
 
-  // Mood tracker
   const [todayMood, setTodayMood] = useState(null)
   const [moodSaved, setMoodSaved] = useState(false)
 
-  // Gratitude jar
   const [gratitudeText, setGratitudeText] = useState('')
   const [gratitudeList, setGratitudeList] = useState([])
   const [gratitudeSaved, setGratitudeSaved] = useState(false)
 
-  // Vent timer
   const [ventText, setVentText] = useState('')
   const [ventTimeLeft, setVentTimeLeft] = useState(300)
   const [ventStarted, setVentStarted] = useState(false)
   const [ventDone, setVentDone] = useState(false)
   const ventRef = useRef(null)
 
-  // Sleep sounds
   const [playingSound, setPlayingSound] = useState(null)
-  const audioRef = useRef(null)
 
-  // Crisis plan
   const [crisisPlan, setCrisisPlan] = useState({
-    warning: '',
-    people: '',
-    activities: '',
-    hotline: '',
-    safe: '',
+    warning: '', people: '', activities: '', hotline: '', safe: '',
   })
   const [crisisSaved, setCrisisSaved] = useState(false)
 
@@ -64,6 +51,8 @@ function WellnessContent() {
     "What would you tell a friend who felt the way you feel right now?",
     "What is one thing you do not have to do today?",
     "What sound, smell, or texture felt comforting recently?",
+    "What is something you survived that you thought you could not?",
+    "What does rest mean to you right now?",
   ]
   const [prompt] = useState(journalPrompts[Math.floor(Math.random() * journalPrompts.length)])
 
@@ -82,11 +71,12 @@ function WellnessContent() {
   }
 
   const sounds = [
-    { id: 'rain', label: 'Rain', emoji: '🌧', url: 'https://cdn.pixabay.com/audio/2022/03/10/audio_6ac0d3a4f4.mp3' },
-    { id: 'forest', label: 'Forest', emoji: '🌲', url: 'https://cdn.pixabay.com/audio/2021/09/06/audio_6f446b5e9f.mp3' },
-    { id: 'waves', label: 'Waves', emoji: '🌊', url: 'https://cdn.pixabay.com/audio/2022/01/18/audio_d0c6ff1bce.mp3' },
-    { id: 'white', label: 'White noise', emoji: '🤍', url: 'https://cdn.pixabay.com/audio/2022/03/10/audio_270f49d430.mp3' },
-    { id: 'fire', label: 'Fireplace', emoji: '🔥', url: 'https://cdn.pixabay.com/audio/2022/03/23/audio_6ec15e5053.mp3' },
+    { id: 'rain', label: 'Relaxing Rain', emoji: '🌧', videoId: 'mPZkdNFkNps' },
+    { id: 'forest', label: 'Forest Sounds', emoji: '🌲', videoId: 'xNN7iTA57jM' },
+    { id: 'waves', label: 'Ocean Waves', emoji: '🌊', videoId: 'bn9F19Hi1Lk' },
+    { id: 'white', label: 'White Noise', emoji: '🤍', videoId: 'nMfPqeZjc2c' },
+    { id: 'fire', label: 'Fireplace', emoji: '🔥', videoId: 'L_LUpnjgPso' },
+    { id: 'cafe', label: 'Cafe Ambience', emoji: '☕', videoId: 'gaGrHLGSdGQ' },
   ]
 
   const moods = [
@@ -97,7 +87,6 @@ function WellnessContent() {
     { score: 5, emoji: '😊', label: 'good' },
   ]
 
-  // Load saved data
   useEffect(() => {
     const saved = localStorage.getItem('unspoken-gratitude')
     if (saved) setGratitudeList(JSON.parse(saved))
@@ -105,7 +94,6 @@ function WellnessContent() {
     if (savedCrisis) setCrisisPlan(JSON.parse(savedCrisis))
   }, [])
 
-  // Particles
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -143,7 +131,6 @@ function WellnessContent() {
     return () => { cancelAnimationFrame(animationId); window.removeEventListener('resize', handleResize) }
   }, [])
 
-  // Vent timer
   useEffect(() => {
     if (ventStarted && ventTimeLeft > 0) {
       ventRef.current = setInterval(() => {
@@ -222,20 +209,6 @@ function WellnessContent() {
     setTimeout(() => setGratitudeSaved(false), 2000)
   }
 
-  function toggleSound(sound) {
-    if (playingSound === sound.id) {
-      audioRef.current?.pause()
-      setPlayingSound(null)
-    } else {
-      if (audioRef.current) audioRef.current.pause()
-      audioRef.current = new Audio(sound.url)
-      audioRef.current.loop = true
-      audioRef.current.volume = 0.5
-      audioRef.current.play()
-      setPlayingSound(sound.id)
-    }
-  }
-
   function saveCrisisPlan() {
     localStorage.setItem('unspoken-crisis-plan', JSON.stringify(crisisPlan))
     setCrisisSaved(true)
@@ -244,6 +217,15 @@ function WellnessContent() {
 
   function formatTime(s) {
     return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+  }
+
+  const videoIds = {
+    rain: 'mPZkdNFkNps',
+    forest: 'xNN7iTA57jM',
+    waves: 'bn9F19Hi1Lk',
+    white: 'nMfPqeZjc2c',
+    fire: 'L_LUpnjgPso',
+    cafe: 'gaGrHLGSdGQ',
   }
 
   const tabs = [
@@ -270,6 +252,14 @@ function WellnessContent() {
     whiteSpace: 'nowrap',
   })
 
+  const cardStyle = {
+    backgroundColor: 'rgba(22,19,31,0.9)',
+    border: '0.5px solid #2a2640',
+    borderRadius: '14px',
+    padding: '1.5rem',
+    backdropFilter: 'blur(8px)',
+  }
+
   return (
     <main style={{minHeight:'100vh', backgroundColor:'#0f0d14', color:'#e8e6f0', position:'relative', overflow:'hidden'}}>
 
@@ -283,11 +273,10 @@ function WellnessContent() {
           </button>
           <h1 style={{fontSize:'1rem', fontWeight:'500', color:'#e8e6f0'}}>wellness</h1>
           <a href="https://www.befrienders.org" target="_blank" style={{fontSize:'0.72rem', color:'#e88080', textDecoration:'none', padding:'0.5rem 0.85rem', borderRadius:'8px', border:'0.5px solid #2a1f1f', backgroundColor:'#2a1f1f', fontWeight:'700'}}>
-            I NEED HELP
+            HELP
           </a>
         </nav>
 
-        {/* Tabs — horizontal scroll */}
         <div style={{overflowX:'auto', padding:'0.75rem 1rem', borderBottom:'0.5px solid #2a2640', backgroundColor:'rgba(15,13,20,0.6)'}}>
           <div style={{display:'flex', gap:'0.3rem', minWidth:'max-content'}}>
             {tabs.map(tab => (
@@ -305,7 +294,8 @@ function WellnessContent() {
             <div style={{animation:'fadeSlideUp 0.4s ease forwards'}}>
               <div style={{display:'flex', gap:'0.5rem', marginBottom:'1.5rem'}}>
                 {Object.entries(breathingPatterns).map(([key, val]) => (
-                  <button key={key} onClick={() => { setBreathingType(key); setIsBreathing(false); setBreathText('tap to begin'); setBreathScale(1) }}
+                  <button key={key}
+                    onClick={() => { setBreathingType(key); setIsBreathing(false); setBreathText('tap to begin'); setBreathScale(1) }}
                     style={{flex:1, fontSize:'0.75rem', padding:'0.6rem', borderRadius:'8px', border: breathingType === key ? '0.5px solid #9b9be8' : '0.5px solid #2a2640', backgroundColor: breathingType === key ? '#1e1a3e' : '#16131f', color: breathingType === key ? '#9b9be8' : '#9b98b0', cursor:'pointer', transition:'all 0.2s'}}>
                     {val.name}
                   </button>
@@ -313,17 +303,18 @@ function WellnessContent() {
               </div>
               <div style={{display:'flex', flexDirection:'column', alignItems:'center', padding:'2rem 0'}}>
                 <div onClick={startBreathing}
-                  style={{width:'180px', height:'180px', borderRadius:'50%', backgroundColor: breathPhase === 'inhale' ? 'rgba(155,155,232,0.15)' : breathPhase === 'exhale' ? 'rgba(126,196,160,0.15)' : 'rgba(155,155,232,0.06)', border: `2px solid ${breathPhase === 'inhale' ? '#9b9be8' : breathPhase === 'exhale' ? '#7ec4a0' : '#2a2640'}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transform:`scale(${breathScale})`, transition:`transform ${breathPhase === 'inhale' ? breathingPatterns[breathingType].inhale : breathingPatterns[breathingType].exhale}s ease`, marginBottom:'1.5rem'}}>
+                  style={{width:'180px', height:'180px', borderRadius:'50%', backgroundColor: breathPhase === 'inhale' ? 'rgba(155,155,232,0.15)' : breathPhase === 'exhale' ? 'rgba(126,196,160,0.15)' : 'rgba(155,155,232,0.06)', border: `2px solid ${breathPhase === 'inhale' ? '#9b9be8' : breathPhase === 'exhale' ? '#7ec4a0' : '#2a2640'}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transform:`scale(${breathScale})`, transition:`transform ${breathPhase === 'inhale' ? breathingPatterns[breathingType].inhale : breathingPatterns[breathingType].exhale}s ease`, marginBottom:'1.5rem', boxShadow: isBreathing ? '0 0 40px rgba(155,155,232,0.15)' : 'none'}}>
                   <span style={{fontSize:'0.85rem', color:'#9b98b0', textAlign:'center', padding:'1rem', lineHeight:'1.5'}}>{breathText}</span>
                 </div>
                 <p style={{fontSize:'0.75rem', color:'#4a4760', textAlign:'center'}}>{isBreathing ? 'tap to stop' : 'tap to start'}</p>
+                {isBreathing && <div style={{marginTop:'0.75rem', fontSize:'0.7rem', color:'#9b9be8', animation:'pulse 2s ease-in-out infinite'}}>follow the circle...</div>}
               </div>
             </div>
           )}
 
           {/* GROUNDING */}
           {activeTab === 'grounding' && (
-            <div style={{backgroundColor:'rgba(22,19,31,0.9)', border:'0.5px solid #2a2640', borderRadius:'14px', padding:'1.5rem', animation:'fadeSlideUp 0.4s ease forwards'}}>
+            <div style={{...cardStyle, animation:'fadeSlideUp 0.4s ease forwards'}}>
               {groundingStep < 5 ? (
                 <div>
                   <div style={{textAlign:'center', marginBottom:'1.5rem'}}>
@@ -331,7 +322,7 @@ function WellnessContent() {
                     <h2 style={{fontSize:'0.95rem', fontWeight:'500', color:'#e8e6f0', marginBottom:'0.75rem'}}>{groundingSteps[groundingStep].instruction}</h2>
                     <div style={{display:'flex', justifyContent:'center', gap:'0.3rem'}}>
                       {groundingSteps.map((_, i) => (
-                        <div key={i} style={{width:'6px', height:'6px', borderRadius:'50%', backgroundColor: i <= groundingStep ? '#9b9be8' : '#2a2640'}} />
+                        <div key={i} style={{width:'6px', height:'6px', borderRadius:'50%', backgroundColor: i <= groundingStep ? '#9b9be8' : '#2a2640', transition:'all 0.3s'}} />
                       ))}
                     </div>
                   </div>
@@ -343,8 +334,11 @@ function WellnessContent() {
                     </div>
                   )}
                   <div style={{display:'flex', gap:'0.5rem'}}>
-                    <input type="text" placeholder={`something you can ${groundingSteps[groundingStep].sense}...`} value={groundingInput} onChange={e => setGroundingInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleGroundingSubmit()}
-                      style={{flex:1, backgroundColor:'#1e1a2e', border:'0.5px solid #2a2640', borderRadius:'8px', padding:'0.65rem 0.85rem', fontSize:'0.875rem', color:'#e8e6f0', outline:'none', fontFamily:'inherit'}} autoFocus />
+                    <input type="text" placeholder={`something you can ${groundingSteps[groundingStep].sense}...`}
+                      value={groundingInput} onChange={e => setGroundingInput(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleGroundingSubmit()}
+                      style={{flex:1, backgroundColor:'#1e1a2e', border:'0.5px solid #2a2640', borderRadius:'8px', padding:'0.65rem 0.85rem', fontSize:'0.875rem', color:'#e8e6f0', outline:'none', fontFamily:'inherit'}}
+                      autoFocus />
                     <button onClick={handleGroundingSubmit} style={{backgroundColor:'#9b9be8', color:'#0f0d14', border:'none', borderRadius:'8px', padding:'0.65rem 1rem', fontWeight:'600', cursor:'pointer'}}>next</button>
                   </div>
                 </div>
@@ -353,6 +347,11 @@ function WellnessContent() {
                   <div style={{fontSize:'2.5rem', marginBottom:'1rem'}}>🌿</div>
                   <h2 style={{fontSize:'1rem', fontWeight:'500', color:'#e8e6f0', marginBottom:'0.5rem'}}>You made it through.</h2>
                   <p style={{fontSize:'0.8rem', color:'#9b98b0', lineHeight:'1.6', marginBottom:'1.5rem'}}>You are here. You are safe.</p>
+                  <div style={{display:'flex', flexDirection:'column', gap:'0.4rem', marginBottom:'1.25rem'}}>
+                    {groundingAnswers.map((a, i) => (
+                      <div key={i} style={{fontSize:'0.75rem', color:'#7ec4a0', padding:'0.4rem 0.75rem', backgroundColor:'#1a2e24', borderRadius:'8px', textAlign:'left'}}>{a.answer}</div>
+                    ))}
+                  </div>
                   <button onClick={() => { setGroundingStep(0); setGroundingAnswers([]); setGroundingInput('') }}
                     style={{fontSize:'0.8rem', color:'#9b98b0', background:'#16131f', border:'0.5px solid #2a2640', borderRadius:'8px', padding:'0.6rem 1.25rem', cursor:'pointer'}}>
                     do it again
@@ -364,7 +363,7 @@ function WellnessContent() {
 
           {/* JOURNAL */}
           {activeTab === 'journal' && (
-            <div style={{backgroundColor:'rgba(22,19,31,0.9)', border:'0.5px solid #2a2640', borderRadius:'14px', padding:'1.5rem', display:'flex', flexDirection:'column', gap:'1.25rem', animation:'fadeSlideUp 0.4s ease forwards'}}>
+            <div style={{...cardStyle, display:'flex', flexDirection:'column', gap:'1.25rem', animation:'fadeSlideUp 0.4s ease forwards'}}>
               <div style={{backgroundColor:'#1e1a2e', borderRadius:'10px', padding:'1rem', borderLeft:'2px solid #9b9be8'}}>
                 <p style={{fontSize:'0.875rem', color:'#9b98b0', lineHeight:'1.7', fontStyle:'italic'}}>{prompt}</p>
               </div>
@@ -377,169 +376,182 @@ function WellnessContent() {
                   {journalSaved ? 'saved' : 'save'}
                 </button>
               </div>
-              {journalSaved && <p style={{fontSize:'0.75rem', color:'#7ec4a0', textAlign:'center'}}>saved privately.</p>}
+              {journalSaved && <p style={{fontSize:'0.75rem', color:'#7ec4a0', textAlign:'center'}}>saved privately. only you can see this.</p>}
             </div>
           )}
 
-          {/* MOOD TRACKER */}
+          {/* MOOD */}
           {activeTab === 'mood' && (
-            <div style={{animation:'fadeSlideUp 0.4s ease forwards'}}>
-              <div style={{backgroundColor:'rgba(22,19,31,0.9)', border:'0.5px solid #2a2640', borderRadius:'14px', padding:'1.5rem', display:'flex', flexDirection:'column', gap:'1.25rem'}}>
-                <div>
-                  <h2 style={{fontSize:'1rem', fontWeight:'500', color:'#e8e6f0', marginBottom:'0.4rem'}}>How are you feeling today?</h2>
-                  <p style={{fontSize:'0.8rem', color:'#9b98b0'}}>One honest check-in. No pressure.</p>
-                </div>
-                <div style={{display:'flex', justifyContent:'space-between', gap:'0.5rem'}}>
-                  {moods.map(mood => (
-                    <button key={mood.score} onClick={() => setTodayMood(mood.score)}
-                      style={{flex:1, backgroundColor: todayMood === mood.score ? '#1e1a3e' : '#1e1a2e', border: todayMood === mood.score ? '0.5px solid #9b9be8' : '0.5px solid #2a2640', borderRadius:'10px', padding:'0.75rem 0.25rem', display:'flex', flexDirection:'column', alignItems:'center', gap:'0.4rem', cursor:'pointer', transition:'all 0.2s'}}>
-                      <span style={{fontSize:'1.5rem'}}>{mood.emoji}</span>
-                      <span style={{fontSize:'0.65rem', color: todayMood === mood.score ? '#9b9be8' : '#4a4760'}}>{mood.label}</span>
-                    </button>
-                  ))}
-                </div>
-                <button onClick={saveMood} disabled={!todayMood}
-                  style={{width:'100%', backgroundColor: todayMood ? '#9b9be8' : '#2a2640', color: todayMood ? '#0f0d14' : '#4a4760', border:'none', borderRadius:'10px', padding:'0.85rem', fontSize:'0.875rem', fontWeight:'500', cursor: todayMood ? 'pointer' : 'not-allowed', transition:'all 0.2s'}}>
-                  {moodSaved ? 'logged' : 'log mood'}
-                </button>
-                {moodSaved && <p style={{fontSize:'0.75rem', color:'#7ec4a0', textAlign:'center'}}>mood logged. thank you for checking in.</p>}
+            <div style={{...cardStyle, display:'flex', flexDirection:'column', gap:'1.25rem', animation:'fadeSlideUp 0.4s ease forwards'}}>
+              <div>
+                <h2 style={{fontSize:'1rem', fontWeight:'500', color:'#e8e6f0', marginBottom:'0.4rem'}}>How are you feeling today?</h2>
+                <p style={{fontSize:'0.8rem', color:'#9b98b0'}}>One honest check-in. No pressure.</p>
               </div>
+              <div style={{display:'flex', justifyContent:'space-between', gap:'0.5rem'}}>
+                {moods.map(mood => (
+                  <button key={mood.score} onClick={() => setTodayMood(mood.score)}
+                    style={{flex:1, backgroundColor: todayMood === mood.score ? '#1e1a3e' : '#1e1a2e', border: todayMood === mood.score ? '0.5px solid #9b9be8' : '0.5px solid #2a2640', borderRadius:'10px', padding:'0.75rem 0.25rem', display:'flex', flexDirection:'column', alignItems:'center', gap:'0.4rem', cursor:'pointer', transition:'all 0.2s'}}>
+                    <span style={{fontSize:'1.5rem'}}>{mood.emoji}</span>
+                    <span style={{fontSize:'0.65rem', color: todayMood === mood.score ? '#9b9be8' : '#4a4760'}}>{mood.label}</span>
+                  </button>
+                ))}
+              </div>
+              <button onClick={saveMood} disabled={!todayMood}
+                style={{width:'100%', backgroundColor: todayMood ? '#9b9be8' : '#2a2640', color: todayMood ? '#0f0d14' : '#4a4760', border:'none', borderRadius:'10px', padding:'0.85rem', fontSize:'0.875rem', fontWeight:'500', cursor: todayMood ? 'pointer' : 'not-allowed', transition:'all 0.2s'}}>
+                {moodSaved ? 'logged' : 'log mood'}
+              </button>
+              {moodSaved && <p style={{fontSize:'0.75rem', color:'#7ec4a0', textAlign:'center'}}>mood logged. thank you for checking in.</p>}
             </div>
           )}
 
-          {/* GRATITUDE JAR */}
+          {/* GRATITUDE */}
           {activeTab === 'gratitude' && (
-            <div style={{animation:'fadeSlideUp 0.4s ease forwards'}}>
-              <div style={{backgroundColor:'rgba(22,19,31,0.9)', border:'0.5px solid #2a2640', borderRadius:'14px', padding:'1.5rem', display:'flex', flexDirection:'column', gap:'1.25rem'}}>
-                <div>
-                  <h2 style={{fontSize:'1rem', fontWeight:'500', color:'#e8e6f0', marginBottom:'0.4rem'}}>🫙 gratitude jar</h2>
-                  <p style={{fontSize:'0.8rem', color:'#9b98b0'}}>Drop in one small thing. Even tiny ones count.</p>
-                </div>
-                <div style={{display:'flex', gap:'0.5rem'}}>
-                  <input type="text" placeholder="something small that was okay today..." value={gratitudeText} onChange={e => setGratitudeText(e.target.value)} onKeyDown={e => e.key === 'Enter' && addGratitude()}
-                    style={{flex:1, backgroundColor:'#1e1a2e', border:'0.5px solid #2a2640', borderRadius:'10px', padding:'0.75rem 1rem', fontSize:'0.875rem', color:'#e8e6f0', outline:'none', fontFamily:'inherit'}} />
-                  <button onClick={addGratitude} style={{backgroundColor:'#9b9be8', color:'#0f0d14', border:'none', borderRadius:'10px', padding:'0.75rem 1rem', fontWeight:'600', cursor:'pointer'}}>+</button>
-                </div>
-                {gratitudeSaved && <p style={{fontSize:'0.75rem', color:'#7ec4a0'}}>added to your jar.</p>}
-                <div style={{display:'flex', flexDirection:'column', gap:'0.5rem', maxHeight:'300px', overflowY:'auto'}}>
-                  {gratitudeList.length === 0 && (
-                    <p style={{fontSize:'0.8rem', color:'#4a4760', textAlign:'center', padding:'1rem'}}>your jar is empty. add something small.</p>
-                  )}
-                  {gratitudeList.map((item, i) => (
+            <div style={{...cardStyle, display:'flex', flexDirection:'column', gap:'1.25rem', animation:'fadeSlideUp 0.4s ease forwards'}}>
+              <div>
+                <h2 style={{fontSize:'1rem', fontWeight:'500', color:'#e8e6f0', marginBottom:'0.4rem'}}>🫙 gratitude jar</h2>
+                <p style={{fontSize:'0.8rem', color:'#9b98b0'}}>Drop in one small thing. Even tiny ones count.</p>
+              </div>
+              <div style={{display:'flex', gap:'0.5rem'}}>
+                <input type="text" placeholder="something small that was okay today..." value={gratitudeText}
+                  onChange={e => setGratitudeText(e.target.value)} onKeyDown={e => e.key === 'Enter' && addGratitude()}
+                  style={{flex:1, backgroundColor:'#1e1a2e', border:'0.5px solid #2a2640', borderRadius:'10px', padding:'0.75rem 1rem', fontSize:'0.875rem', color:'#e8e6f0', outline:'none', fontFamily:'inherit'}} />
+                <button onClick={addGratitude} style={{backgroundColor:'#9b9be8', color:'#0f0d14', border:'none', borderRadius:'10px', padding:'0.75rem 1rem', fontWeight:'600', cursor:'pointer', fontSize:'1.2rem'}}>+</button>
+              </div>
+              {gratitudeSaved && <p style={{fontSize:'0.75rem', color:'#7ec4a0'}}>added to your jar.</p>}
+              <div style={{display:'flex', flexDirection:'column', gap:'0.5rem', maxHeight:'300px', overflowY:'auto'}}>
+                {gratitudeList.length === 0 ? (
+                  <p style={{fontSize:'0.8rem', color:'#4a4760', textAlign:'center', padding:'1rem'}}>your jar is empty. add something small.</p>
+                ) : (
+                  gratitudeList.map((item, i) => (
                     <div key={i} style={{backgroundColor:'#1e1a2e', borderRadius:'10px', padding:'0.75rem 1rem', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
                       <span style={{fontSize:'0.85rem', color:'#e8e6f0'}}>{item.text}</span>
                       <span style={{fontSize:'0.7rem', color:'#4a4760'}}>{item.date}</span>
                     </div>
-                  ))}
-                </div>
+                  ))
+                )}
               </div>
             </div>
           )}
 
           {/* VENT TIMER */}
           {activeTab === 'vent' && (
-            <div style={{animation:'fadeSlideUp 0.4s ease forwards'}}>
-              <div style={{backgroundColor:'rgba(22,19,31,0.9)', border:'0.5px solid #2a2640', borderRadius:'14px', padding:'1.5rem', display:'flex', flexDirection:'column', gap:'1.25rem'}}>
-                <div>
-                  <h2 style={{fontSize:'1rem', fontWeight:'500', color:'#e8e6f0', marginBottom:'0.4rem'}}>⏱ vent timer</h2>
-                  <p style={{fontSize:'0.8rem', color:'#9b98b0'}}>5 minutes to say everything. Then it disappears. No one sees it.</p>
-                </div>
-
-                {!ventDone ? (
-                  <>
-                    <div style={{textAlign:'center', fontSize:'2rem', fontWeight:'300', color: ventStarted ? '#9b9be8' : '#4a4760', fontVariantNumeric:'tabular-nums'}}>
-                      {formatTime(ventTimeLeft)}
-                    </div>
-                    <textarea
-                      placeholder="say everything you need to say. it won't be saved."
-                      value={ventText}
-                      onChange={e => setVentText(e.target.value)}
-                      disabled={!ventStarted}
-                      rows={8}
-                      style={{backgroundColor:'#1e1a2e', border: ventStarted ? '0.5px solid #9b9be8' : '0.5px solid #2a2640', borderRadius:'10px', padding:'0.85rem 1rem', fontSize:'0.875rem', color: ventStarted ? '#e8e6f0' : '#4a4760', outline:'none', resize:'none', lineHeight:'1.7', fontFamily:'inherit', transition:'all 0.3s'}}
-                    />
-                    <button
-                      onClick={() => { if (!ventStarted) { setVentStarted(true) } else { clearInterval(ventRef.current); setVentStarted(false); setVentText(''); setVentTimeLeft(300) } }}
-                      style={{width:'100%', backgroundColor: ventStarted ? '#2a1f1f' : '#9b9be8', color: ventStarted ? '#e88080' : '#0f0d14', border:'none', borderRadius:'10px', padding:'0.85rem', fontSize:'0.875rem', fontWeight:'500', cursor:'pointer', transition:'all 0.2s'}}>
-                      {ventStarted ? 'stop & clear' : 'start venting'}
-                    </button>
-                  </>
-                ) : (
-                  <div style={{textAlign:'center', padding:'1rem'}}>
-                    <div style={{fontSize:'2rem', marginBottom:'1rem'}}>🌬</div>
-                    <h3 style={{fontSize:'1rem', color:'#e8e6f0', marginBottom:'0.5rem'}}>time's up.</h3>
-                    <p style={{fontSize:'0.85rem', color:'#9b98b0', lineHeight:'1.6', marginBottom:'1.5rem'}}>everything you wrote is gone. you got it out. that's what matters.</p>
-                    <button onClick={() => { setVentDone(false); setVentText(''); setVentTimeLeft(300); setVentStarted(false) }}
-                      style={{fontSize:'0.8rem', color:'#9b98b0', background:'#16131f', border:'0.5px solid #2a2640', borderRadius:'8px', padding:'0.6rem 1.25rem', cursor:'pointer'}}>
-                      do it again
-                    </button>
-                  </div>
-                )}
+            <div style={{...cardStyle, display:'flex', flexDirection:'column', gap:'1.25rem', animation:'fadeSlideUp 0.4s ease forwards'}}>
+              <div>
+                <h2 style={{fontSize:'1rem', fontWeight:'500', color:'#e8e6f0', marginBottom:'0.4rem'}}>⏱ vent timer</h2>
+                <p style={{fontSize:'0.8rem', color:'#9b98b0'}}>5 minutes to say everything. Then it disappears. No one sees it.</p>
               </div>
+              {!ventDone ? (
+                <div style={{display:'flex', flexDirection:'column', gap:'1rem'}}>
+                  <div style={{textAlign:'center', fontSize:'2.5rem', fontWeight:'300', color: ventStarted ? '#9b9be8' : '#4a4760', fontVariantNumeric:'tabular-nums'}}>
+                    {formatTime(ventTimeLeft)}
+                  </div>
+                  <textarea
+                    placeholder="say everything you need to say. it will not be saved."
+                    value={ventText} onChange={e => setVentText(e.target.value)}
+                    disabled={!ventStarted} rows={8}
+                    style={{backgroundColor:'#1e1a2e', border: ventStarted ? '0.5px solid #9b9be8' : '0.5px solid #2a2640', borderRadius:'10px', padding:'0.85rem 1rem', fontSize:'0.875rem', color: ventStarted ? '#e8e6f0' : '#4a4760', outline:'none', resize:'none', lineHeight:'1.7', fontFamily:'inherit', transition:'all 0.3s'}} />
+                  <button
+                    onClick={() => {
+                      if (!ventStarted) {
+                        setVentStarted(true)
+                      } else {
+                        clearInterval(ventRef.current)
+                        setVentStarted(false)
+                        setVentText('')
+                        setVentTimeLeft(300)
+                      }
+                    }}
+                    style={{width:'100%', backgroundColor: ventStarted ? '#2a1f1f' : '#9b9be8', color: ventStarted ? '#e88080' : '#0f0d14', border:'none', borderRadius:'10px', padding:'0.85rem', fontSize:'0.875rem', fontWeight:'500', cursor:'pointer', transition:'all 0.2s'}}>
+                    {ventStarted ? 'stop and clear' : 'start venting'}
+                  </button>
+                </div>
+              ) : (
+                <div style={{textAlign:'center', padding:'1rem'}}>
+                  <div style={{fontSize:'2rem', marginBottom:'1rem'}}>🌬</div>
+                  <h3 style={{fontSize:'1rem', color:'#e8e6f0', marginBottom:'0.5rem'}}>time is up.</h3>
+                  <p style={{fontSize:'0.85rem', color:'#9b98b0', lineHeight:'1.6', marginBottom:'1.5rem'}}>everything you wrote is gone. you got it out. that is what matters.</p>
+                  <button onClick={() => { setVentDone(false); setVentText(''); setVentTimeLeft(300); setVentStarted(false) }}
+                    style={{fontSize:'0.8rem', color:'#9b98b0', background:'#16131f', border:'0.5px solid #2a2640', borderRadius:'8px', padding:'0.6rem 1.25rem', cursor:'pointer'}}>
+                    do it again
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
-          {/* SLEEP SOUNDS */}
+          {/* SOUNDS */}
           {activeTab === 'sounds' && (
-            <div style={{animation:'fadeSlideUp 0.4s ease forwards'}}>
-              <div style={{backgroundColor:'rgba(22,19,31,0.9)', border:'0.5px solid #2a2640', borderRadius:'14px', padding:'1.5rem', display:'flex', flexDirection:'column', gap:'1rem'}}>
-                <div>
-                  <h2 style={{fontSize:'1rem', fontWeight:'500', color:'#e8e6f0', marginBottom:'0.4rem'}}>🎵 sleep sounds</h2>
-                  <p style={{fontSize:'0.8rem', color:'#9b98b0'}}>Tap to play. Tap again to stop.</p>
-                </div>
-                <div style={{display:'flex', flexDirection:'column', gap:'0.75rem'}}>
-                  {sounds.map(sound => (
-                    <button key={sound.id} onClick={() => toggleSound(sound)}
-                      style={{display:'flex', alignItems:'center', gap:'1rem', padding:'1rem 1.1rem', backgroundColor: playingSound === sound.id ? '#1e1a3e' : '#1e1a2e', border: playingSound === sound.id ? '0.5px solid #9b9be8' : '0.5px solid #2a2640', borderRadius:'12px', cursor:'pointer', transition:'all 0.2s', textAlign:'left'}}>
-                      <span style={{fontSize:'1.5rem'}}>{sound.emoji}</span>
-                      <div style={{flex:1}}>
-                        <div style={{fontSize:'0.875rem', color: playingSound === sound.id ? '#9b9be8' : '#e8e6f0', fontWeight: playingSound === sound.id ? '500' : 'normal'}}>{sound.label}</div>
-                        {playingSound === sound.id && <div style={{fontSize:'0.7rem', color:'#9b9be8', marginTop:'0.2rem', animation:'pulse 2s ease-in-out infinite'}}>playing...</div>}
-                      </div>
-                      <div style={{width:'8px', height:'8px', borderRadius:'50%', backgroundColor: playingSound === sound.id ? '#9b9be8' : '#2a2640', transition:'all 0.2s'}} />
-                    </button>
-                  ))}
-                </div>
+            <div style={{...cardStyle, display:'flex', flexDirection:'column', gap:'1rem', animation:'fadeSlideUp 0.4s ease forwards'}}>
+              <div>
+                <h2 style={{fontSize:'1rem', fontWeight:'500', color:'#e8e6f0', marginBottom:'0.4rem'}}>🎵 sleep sounds</h2>
+                <p style={{fontSize:'0.8rem', color:'#9b98b0'}}>Tap to play. Tap again to stop.</p>
               </div>
+              <div style={{display:'flex', flexDirection:'column', gap:'0.75rem'}}>
+                {sounds.map(sound => (
+                  <button key={sound.id}
+                    onClick={() => setPlayingSound(playingSound === sound.id ? null : sound.id)}
+                    style={{display:'flex', alignItems:'center', gap:'1rem', padding:'1rem 1.1rem', backgroundColor: playingSound === sound.id ? '#1e1a3e' : '#1e1a2e', border: playingSound === sound.id ? '0.5px solid #9b9be8' : '0.5px solid #2a2640', borderRadius:'12px', cursor:'pointer', transition:'all 0.2s', textAlign:'left', width:'100%'}}>
+                    <span style={{fontSize:'1.5rem'}}>{sound.emoji}</span>
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:'0.875rem', color: playingSound === sound.id ? '#9b9be8' : '#e8e6f0', fontWeight: playingSound === sound.id ? '500' : 'normal'}}>{sound.label}</div>
+                      {playingSound === sound.id && (
+                        <div style={{fontSize:'0.7rem', color:'#9b9be8', marginTop:'0.2rem', animation:'pulse 2s ease-in-out infinite'}}>now playing...</div>
+                      )}
+                    </div>
+                    <div style={{width:'8px', height:'8px', borderRadius:'50%', backgroundColor: playingSound === sound.id ? '#9b9be8' : '#2a2640', transition:'all 0.2s'}} />
+                  </button>
+                ))}
+              </div>
+
+              {playingSound && (
+                <div style={{position:'fixed', bottom:0, left:'-9999px', width:'1px', height:'1px'}}>
+                  <iframe
+                    key={playingSound}
+                    width="1" height="1"
+                    src={`https://www.youtube.com/embed/${videoIds[playingSound]}?autoplay=1&loop=1&playlist=${videoIds[playingSound]}`}
+                    allow="autoplay"
+                    title="ambient sound"
+                  />
+                </div>
+              )}
+
+              <p style={{fontSize:'0.72rem', color:'#4a4760', textAlign:'center'}}>
+                sounds play via YouTube. works best with sound on.
+              </p>
             </div>
           )}
 
           {/* CRISIS PLAN */}
           {activeTab === 'crisis' && (
-            <div style={{animation:'fadeSlideUp 0.4s ease forwards'}}>
-              <div style={{backgroundColor:'rgba(22,19,31,0.9)', border:'0.5px solid #2a2640', borderRadius:'14px', padding:'1.5rem', display:'flex', flexDirection:'column', gap:'1.25rem'}}>
-                <div>
-                  <h2 style={{fontSize:'1rem', fontWeight:'500', color:'#e8e6f0', marginBottom:'0.4rem'}}>🛡 my safety plan</h2>
-                  <p style={{fontSize:'0.8rem', color:'#9b98b0', lineHeight:'1.5'}}>Write this when you are okay. Read it when you are not.</p>
+            <div style={{...cardStyle, display:'flex', flexDirection:'column', gap:'1.25rem', animation:'fadeSlideUp 0.4s ease forwards'}}>
+              <div>
+                <h2 style={{fontSize:'1rem', fontWeight:'500', color:'#e8e6f0', marginBottom:'0.4rem'}}>🛡 my safety plan</h2>
+                <p style={{fontSize:'0.8rem', color:'#9b98b0', lineHeight:'1.5'}}>Write this when you are okay. Read it when you are not.</p>
+              </div>
+              {[
+                { key:'warning', label:'Warning signs — how do I know when I am struggling?', placeholder:'e.g. I stop eating, I isolate, I feel numb...' },
+                { key:'activities', label:'Things that help me feel better', placeholder:'e.g. walking, music, calling a friend...' },
+                { key:'people', label:'People I can reach out to', placeholder:'e.g. my sister, my friend...' },
+                { key:'hotline', label:'Crisis line I can call', placeholder:'e.g. Kaan Pete Roi: 01779-554391' },
+                { key:'safe', label:'A reason to hold on', placeholder:'e.g. my cat, the book I want to finish...' },
+              ].map(field => (
+                <div key={field.key} style={{display:'flex', flexDirection:'column', gap:'0.4rem'}}>
+                  <label style={{fontSize:'0.72rem', color:'#4a4760', letterSpacing:'0.05em'}}>{field.label}</label>
+                  <textarea placeholder={field.placeholder} value={crisisPlan[field.key]}
+                    onChange={e => setCrisisPlan({...crisisPlan, [field.key]: e.target.value})}
+                    rows={2}
+                    style={{backgroundColor:'#1e1a2e', border:'0.5px solid #2a2640', borderRadius:'8px', padding:'0.65rem 0.85rem', fontSize:'0.85rem', color:'#e8e6f0', outline:'none', resize:'none', lineHeight:'1.6', fontFamily:'inherit'}} />
                 </div>
-                {[
-                  { key: 'warning', label: 'Warning signs — how do I know when I am struggling?', placeholder: 'e.g. I stop eating, I isolate, I feel numb...' },
-                  { key: 'activities', label: 'Things that help me feel better', placeholder: 'e.g. walking, music, calling a friend...' },
-                  { key: 'people', label: 'People I can reach out to', placeholder: 'e.g. my sister, my friend Anika...' },
-                  { key: 'hotline', label: 'Crisis line I can call', placeholder: 'e.g. Kaan Pete Roi: 01779-554391' },
-                  { key: 'safe', label: 'A reason to hold on', placeholder: 'e.g. my cat, the book I want to finish...' },
-                ].map(field => (
-                  <div key={field.key} style={{display:'flex', flexDirection:'column', gap:'0.4rem'}}>
-                    <label style={{fontSize:'0.72rem', color:'#4a4760', letterSpacing:'0.05em'}}>{field.label}</label>
-                    <textarea
-                      placeholder={field.placeholder}
-                      value={crisisPlan[field.key]}
-                      onChange={e => setCrisisPlan({...crisisPlan, [field.key]: e.target.value})}
-                      rows={2}
-                      style={{backgroundColor:'#1e1a2e', border:'0.5px solid #2a2640', borderRadius:'8px', padding:'0.65rem 0.85rem', fontSize:'0.85rem', color:'#e8e6f0', outline:'none', resize:'none', lineHeight:'1.6', fontFamily:'inherit'}}
-                    />
-                  </div>
-                ))}
-                <button onClick={saveCrisisPlan}
-                  style={{width:'100%', backgroundColor:'#9b9be8', color:'#0f0d14', border:'none', borderRadius:'10px', padding:'0.85rem', fontSize:'0.875rem', fontWeight:'500', cursor:'pointer'}}>
-                  {crisisSaved ? 'saved safely' : 'save my plan'}
-                </button>
-                {crisisSaved && <p style={{fontSize:'0.75rem', color:'#7ec4a0', textAlign:'center'}}>saved on this device. only you can see this.</p>}
-                <div style={{backgroundColor:'#2a1f1f', borderRadius:'10px', padding:'1rem', textAlign:'center'}}>
-                  <a href="https://www.befrienders.org" target="_blank" style={{fontSize:'0.85rem', color:'#e88080', textDecoration:'none', fontWeight:'700', letterSpacing:'0.02em'}}>
-                    I NEED HELP RIGHT NOW
-                  </a>
-                </div>
+              ))}
+              <button onClick={saveCrisisPlan}
+                style={{width:'100%', backgroundColor:'#9b9be8', color:'#0f0d14', border:'none', borderRadius:'10px', padding:'0.85rem', fontSize:'0.875rem', fontWeight:'500', cursor:'pointer'}}>
+                {crisisSaved ? 'saved safely' : 'save my plan'}
+              </button>
+              {crisisSaved && <p style={{fontSize:'0.75rem', color:'#7ec4a0', textAlign:'center'}}>saved on this device. only you can see this.</p>}
+              <div style={{backgroundColor:'#2a1f1f', borderRadius:'10px', padding:'1rem', textAlign:'center'}}>
+                <a href="https://www.befrienders.org" target="_blank" style={{fontSize:'0.85rem', color:'#e88080', textDecoration:'none', fontWeight:'700', letterSpacing:'0.02em'}}>
+                  I NEED HELP RIGHT NOW
+                </a>
               </div>
             </div>
           )}

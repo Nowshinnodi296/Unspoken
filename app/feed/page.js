@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import SideMenu from '@/components/ui/SideMenu'
+import CrisisButton from '@/components/shared/CrisisButton'
 
 const spaces = [
   { id: 1, name: "Can't sleep", emoji: '🌙' },
@@ -28,7 +29,6 @@ export default function Feed() {
   const [user, setUser] = useState(null)
   const [pseudonym, setPseudonym] = useState('')
   const [isDark, setIsDark] = useState(true)
-
   const [quickContent, setQuickContent] = useState('')
   const [quickSpace, setQuickSpace] = useState(null)
   const [quickPosting, setQuickPosting] = useState(false)
@@ -36,9 +36,8 @@ export default function Feed() {
   const [isExpanded, setIsExpanded] = useState(false)
 
   function toggleTheme() {
-    const newTheme = !isDark
-    setIsDark(newTheme)
-    localStorage.setItem('unspoken-theme', newTheme ? 'dark' : 'light')
+    setIsDark(prev => !prev)
+    localStorage.setItem('unspoken-theme', !isDark ? 'dark' : 'light')
   }
 
   useEffect(() => {
@@ -144,7 +143,6 @@ export default function Feed() {
   function hearYouCount(post) { return post.reactions?.filter(r => r.type === 'hear_you').length || 0 }
   function meTooCount(post) { return post.reactions?.filter(r => r.type === 'me_too').length || 0 }
   function userReacted(post, type) { return post.reactions?.some(r => r.user_id === user?.id && r.type === type) }
-
   const selectedSpace = spaces.find(s => s.id === quickSpace)
 
   return (
@@ -154,9 +152,14 @@ export default function Feed() {
 
       <div style={{position:'relative', zIndex:1}}>
 
-        <nav style={{position:'sticky', top:0, zIndex:10, backgroundColor:'rgba(15,13,20,0.92)', backdropFilter:'blur(12px)', borderBottom:'0.5px solid #2a2640', padding:'0.85rem 1.5rem', display:'flex', justifyContent:'space-between', alignItems:'center', animation:'fadeDown 0.6s ease forwards'}}>
-          <h1 style={{fontSize:'1.25rem', fontWeight:'500', color:'#e8e6f0'}}>unspoken</h1>
+        <nav style={{position:'sticky', top:0, zIndex:10, backgroundColor:'rgba(15,13,20,0.92)', backdropFilter:'blur(12px)', borderBottom:'0.5px solid #2a2640', padding:'0.85rem 1.5rem', display:'flex', alignItems:'center', gap:'0.85rem', animation:'fadeDown 0.6s ease forwards'}}>
           <SideMenu isDark={isDark} toggleTheme={toggleTheme} />
+          <h1 style={{fontSize:'1.25rem', fontWeight:'500', color:'#e8e6f0', flex:1}}>unspoken</h1>
+          {pseudonym && (
+            <span style={{fontSize:'0.7rem', color:'#4a4760', backgroundColor:'#1e1a2e', padding:'0.3rem 0.65rem', borderRadius:'999px', border:'0.5px solid #2a2640'}}>
+              {pseudonym}
+            </span>
+          )}
         </nav>
 
         <div style={{maxWidth:'560px', margin:'0 auto', padding:'1.25rem 1rem'}}>
@@ -177,7 +180,7 @@ export default function Feed() {
             </div>
 
             {isExpanded && (
-              <div style={{marginTop:'0.85rem', animation:'fadeSlideUp 0.3s ease forwards'}}>
+              <div style={{marginTop:'0.85rem'}}>
                 <textarea
                   placeholder="say what you feel. no one knows it's you."
                   value={quickContent}
@@ -189,13 +192,13 @@ export default function Feed() {
 
                 <button
                   onClick={() => setShowSpacePicker(!showSpacePicker)}
-                  style={{fontSize:'0.78rem', color: selectedSpace ? '#9b9be8' : '#9b98b0', backgroundColor: selectedSpace ? '#1e1a3e' : '#1e1a2e', border: selectedSpace ? '0.5px solid #9b9be8' : '0.5px solid #2a2640', borderRadius:'8px', padding:'0.45rem 0.85rem', cursor:'pointer', marginBottom: showSpacePicker ? '0.75rem' : '0', transition:'all 0.2s'}}
+                  style={{fontSize:'0.78rem', color: selectedSpace ? '#9b9be8' : '#9b98b0', backgroundColor: selectedSpace ? '#1e1a3e' : '#1e1a2e', border: selectedSpace ? '0.5px solid #9b9be8' : '0.5px solid #2a2640', borderRadius:'8px', padding:'0.45rem 0.85rem', cursor:'pointer', marginBottom: showSpacePicker ? '0.75rem' : '0', transition:'all 0.2s', display:'block'}}
                 >
                   {selectedSpace ? `${selectedSpace.emoji} ${selectedSpace.name}` : '+ pick a space'}
                 </button>
 
                 {showSpacePicker && (
-                  <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'0.4rem', marginBottom:'0.75rem'}}>
+                  <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'0.4rem', marginBottom:'0.75rem', marginTop:'0.5rem'}}>
                     {spaces.map(space => (
                       <button
                         key={space.id}
@@ -203,14 +206,17 @@ export default function Feed() {
                         style={{backgroundColor: quickSpace === space.id ? '#1e1a3e' : '#1e1a2e', border: quickSpace === space.id ? '0.5px solid #9b9be8' : '0.5px solid #2a2640', borderRadius:'8px', padding:'0.5rem', display:'flex', alignItems:'center', gap:'0.4rem', cursor:'pointer', transition:'all 0.15s'}}
                       >
                         <span style={{fontSize:'0.85rem'}}>{space.emoji}</span>
-                        <span style={{fontSize:'0.68rem', color: quickSpace === space.id ? '#9b9be8' : '#9b98b0', textAlign:'left', lineHeight:'1.3'}}>{space.name}</span>
+                        <span style={{fontSize:'0.68rem', color: quickSpace === space.id ? '#9b9be8' : '#9b98b0', lineHeight:'1.3'}}>{space.name}</span>
                       </button>
                     ))}
                   </div>
                 )}
 
-                <div style={{display:'flex', gap:'0.5rem', justifyContent:'flex-end'}}>
-                  <button onClick={() => { setIsExpanded(false); setQuickContent(''); setQuickSpace(null); setShowSpacePicker(false) }} style={{fontSize:'0.78rem', color:'#4a4760', background:'none', border:'none', cursor:'pointer', padding:'0.5rem 0.75rem'}}>
+                <div style={{display:'flex', gap:'0.5rem', justifyContent:'flex-end', marginTop:'0.5rem'}}>
+                  <button
+                    onClick={() => { setIsExpanded(false); setQuickContent(''); setQuickSpace(null); setShowSpacePicker(false) }}
+                    style={{fontSize:'0.78rem', color:'#4a4760', background:'none', border:'none', cursor:'pointer', padding:'0.5rem 0.75rem'}}
+                  >
                     cancel
                   </button>
                   <button
@@ -227,20 +233,23 @@ export default function Feed() {
             {!isExpanded && (
               <div style={{display:'flex', gap:'0.5rem', marginTop:'0.85rem', paddingTop:'0.85rem', borderTop:'0.5px solid #2a2640'}}>
                 {[
-                  { emoji:'🌙', label:"can't sleep", id:1 },
-                  { emoji:'🌊', label:'anxiety', id:3 },
-                  { emoji:'🌱', label:'small win', id:4 },
-                  { emoji:'🪐', label:'lonely', id:8 },
+                  { emoji:'🌙', id:1 },
+                  { emoji:'🌊', id:3 },
+                  { emoji:'🌱', id:4 },
+                  { emoji:'🪐', id:8 },
                 ].map(s => (
                   <button
                     key={s.id}
                     onClick={() => { setIsExpanded(true); setQuickSpace(s.id) }}
-                    style={{flex:1, fontSize:'0.75rem', color:'#9b98b0', backgroundColor:'#1e1a2e', border:'0.5px solid #2a2640', borderRadius:'8px', padding:'0.45rem 0.25rem', cursor:'pointer', transition:'all 0.2s', display:'flex', alignItems:'center', justifyContent:'center', gap:'0.3rem'}}
+                    style={{flex:1, fontSize:'1rem', color:'#9b98b0', backgroundColor:'#1e1a2e', border:'0.5px solid #2a2640', borderRadius:'8px', padding:'0.5rem', cursor:'pointer', transition:'all 0.2s'}}
                   >
-                    <span>{s.emoji}</span>
+                    {s.emoji}
                   </button>
                 ))}
-                <button onClick={() => setIsExpanded(true)} style={{flex:1, fontSize:'0.7rem', color:'#9b98b0', backgroundColor:'#1e1a2e', border:'0.5px solid #2a2640', borderRadius:'8px', padding:'0.45rem 0.25rem', cursor:'pointer'}}>
+                <button
+                  onClick={() => setIsExpanded(true)}
+                  style={{flex:1, fontSize:'0.75rem', color:'#9b98b0', backgroundColor:'#1e1a2e', border:'0.5px solid #2a2640', borderRadius:'8px', padding:'0.5rem', cursor:'pointer'}}
+                >
                   ···
                 </button>
               </div>
@@ -261,8 +270,10 @@ export default function Feed() {
           )}
 
           {posts.map((post, i) => (
-            <div key={post.id} style={{backgroundColor:'rgba(22,19,31,0.9)', border:'0.5px solid #2a2640', borderRadius:'14px', padding:'1.25rem', marginBottom:'0.75rem', backdropFilter:'blur(8px)', animation:`fadeSlideUp 0.5s ease ${i * 0.07}s forwards`, opacity:0}}>
-
+            <div
+              key={post.id}
+              style={{backgroundColor:'rgba(22,19,31,0.9)', border:'0.5px solid #2a2640', borderRadius:'14px', padding:'1.25rem', marginBottom:'0.75rem', backdropFilter:'blur(8px)', animation:`fadeSlideUp 0.5s ease ${i * 0.07}s forwards`, opacity:0}}
+            >
               <div style={{display:'flex', justifyContent:'space-between', marginBottom:'0.75rem'}}>
                 <span style={{fontSize:'0.7rem', color:'#4a4760'}}>{post.spaces?.emoji} {post.spaces?.name}</span>
                 <span style={{fontSize:'0.7rem', color:'#4a4760'}}>{new Date(post.created_at).toLocaleDateString()}</span>
@@ -277,18 +288,26 @@ export default function Feed() {
               <p style={{fontSize:'0.9rem', color:'#e8e6f0', lineHeight:'1.75', marginBottom:'1rem'}}>{post.content}</p>
 
               <div style={{display:'flex', gap:'0.5rem', alignItems:'center'}}>
-                <button onClick={() => handleReaction(post.id, 'hear_you')}
-                  style={{fontSize:'0.75rem', color: userReacted(post, 'hear_you') ? '#0f0d14' : '#7ec4a0', backgroundColor: userReacted(post, 'hear_you') ? '#7ec4a0' : '#1a2e24', border:'0.5px solid #2a4a38', padding:'5px 14px', borderRadius:'999px', cursor:'pointer', transition:'all 0.2s', fontWeight: userReacted(post, 'hear_you') ? '500' : 'normal'}}>
+                <button
+                  onClick={() => handleReaction(post.id, 'hear_you')}
+                  style={{fontSize:'0.75rem', color: userReacted(post, 'hear_you') ? '#0f0d14' : '#7ec4a0', backgroundColor: userReacted(post, 'hear_you') ? '#7ec4a0' : '#1a2e24', border:'0.5px solid #2a4a38', padding:'5px 14px', borderRadius:'999px', cursor:'pointer', transition:'all 0.2s', fontWeight: userReacted(post, 'hear_you') ? '500' : 'normal'}}
+                >
                   I hear you {hearYouCount(post) > 0 && `· ${hearYouCount(post)}`}
                 </button>
-                <button onClick={() => handleReaction(post.id, 'me_too')}
-                  style={{fontSize:'0.75rem', color: userReacted(post, 'me_too') ? '#0f0d14' : '#e8a0b4', backgroundColor: userReacted(post, 'me_too') ? '#e8a0b4' : '#2e1a24', border:'0.5px solid #4a2a38', padding:'5px 14px', borderRadius:'999px', cursor:'pointer', transition:'all 0.2s', fontWeight: userReacted(post, 'me_too') ? '500' : 'normal'}}>
+
+                <button
+                  onClick={() => handleReaction(post.id, 'me_too')}
+                  style={{fontSize:'0.75rem', color: userReacted(post, 'me_too') ? '#0f0d14' : '#e8a0b4', backgroundColor: userReacted(post, 'me_too') ? '#e8a0b4' : '#2e1a24', border:'0.5px solid #4a2a38', padding:'5px 14px', borderRadius:'999px', cursor:'pointer', transition:'all 0.2s', fontWeight: userReacted(post, 'me_too') ? '500' : 'normal'}}
+                >
                   Me too {meTooCount(post) > 0 && `· ${meTooCount(post)}`}
                 </button>
-                <button onClick={() => handleReport(post.id)}
+
+                <button
+                  onClick={() => handleReport(post.id)}
                   style={{fontSize:'0.7rem', color:'#2a2640', background:'none', border:'none', cursor:'pointer', marginLeft:'auto', transition:'color 0.2s'}}
                   onMouseEnter={e => e.target.style.color = '#4a4760'}
-                  onMouseLeave={e => e.target.style.color = '#2a2640'}>
+                  onMouseLeave={e => e.target.style.color = '#2a2640'}
+                >
                   report
                 </button>
               </div>
@@ -297,11 +316,7 @@ export default function Feed() {
 
         </div>
 
-        <div style={{textAlign:'center', padding:'2rem'}}>
-          <a href="https://www.befrienders.org" target="_blank" style={{fontSize:'0.8rem', color:'#e88080', fontWeight:'700', textDecoration:'underline', textUnderlineOffset:'4px', letterSpacing:'0.02em'}}>
-            I NEED HELP RIGHT NOW
-          </a>
-        </div>
+        <CrisisButton />
 
       </div>
 
